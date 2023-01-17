@@ -5,6 +5,7 @@ export * from "./RegisterSchema";
 export * from "./TotpSchema";
 export * from "./BackupCodesChallengeSchema";
 export * from "./ChannelModifySchema";
+export * from "./CallSyncSchema";
 export * from "./InviteCreateSchema";
 export * from "./PurgeSchema";
 export * from "./WebhookCreateSchema";

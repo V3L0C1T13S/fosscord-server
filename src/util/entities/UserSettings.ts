@@ -1,5 +1,11 @@
+import { join } from "path";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import protobuf from "protobufjs";
 import { BaseClassWithoutId } from "./BaseClass";
+import { User } from "./User";
+
+const protoDir = join(__dirname, "../../../assets");
+const preloadedSettingsProto = join(protoDir, "PreloadedUserSettings.proto");
 
 @Entity("user_settings")
 export class UserSettings extends BaseClassWithoutId {
@@ -98,6 +104,95 @@ export class UserSettings extends BaseClassWithoutId {
 
 	@Column({ nullable: true })
 	timezone_offset: number = 0; // e.g -60
+
+	static async toProto(settings: UserSettings) {
+		const root = await protobuf.load(preloadedSettingsProto);
+
+		const PreloadedSettings = root.lookupType("PreloadedUserSettings");
+
+		const protoObject = {
+			afkTimeout: {
+				value: settings.afk_timeout,
+			},
+			textAndImages: {
+				inlineAttachmentMedia: {
+					value: settings.inline_attachment_media,
+				},
+				inlineEmbedMedia: {
+					value: settings.inline_embed_media,
+				},
+				gifAutoPlay: {
+					value: settings.gif_auto_play,
+				},
+				renderEmbeds: {
+					value: settings.render_embeds,
+				},
+				renderReactions: {
+					value: settings.render_reactions,
+				},
+				animateEmoji: {
+					value: settings.animate_emoji,
+				},
+				animateStickers: {
+					value: settings.animate_stickers,
+				},
+				enableTtsCommand: {
+					value: settings.enable_tts_command,
+				},
+				messageDisplayCompact: {
+					value: settings.message_display_compact,
+				},
+				explicit_content_filter: {
+					value: settings.explicit_content_filter,
+				},
+				convertEmoticons: {
+					value: settings.convert_emoticons,
+				},
+			},
+			notifications: {
+				notifyFriendsOnGoLive: {
+					value: settings.stream_notifications_enabled,
+				},
+			},
+			status: {
+				status: {
+					status: settings.status,
+				},
+			},
+			localization: {
+				locale: {
+					localeCode: settings.locale,
+					timezoneOffset: {
+						offset: settings.timezone_offset,
+					},
+				},
+			},
+			appearance: {
+				theme: settings.theme === "light" ? 2 : 1,
+				developerMode: settings.developer_mode ?? true,
+			},
+			guildFolders: {
+				folders:
+					settings.guild_folders?.map((x) => ({
+						guildIds: x.guild_ids,
+						id: x.id,
+						name: x.name,
+					})) ?? [],
+				guildPositions: settings.guild_positions,
+			},
+		};
+
+		return PreloadedSettings.encode(protoObject).finish();
+	}
+
+	static async findAsProto(user_id: string) {
+		const user = await User.findOneOrFail({
+			where: { id: user_id },
+			relations: ["settings"],
+		});
+
+		return this.toProto(user.settings);
+	}
 }
 
 interface CustomStatus {

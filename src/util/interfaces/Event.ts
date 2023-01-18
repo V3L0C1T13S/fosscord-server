@@ -88,6 +88,7 @@ export interface ReadyEventData {
 	guild_join_requests?: any[]; // ? what is this? this is new
 	shard?: [number, number];
 	user_settings?: UserSettings;
+	user_settings_proto?: string;
 	relationships?: PublicRelationship[]; // TODO
 	read_state: {
 		entries: any[]; // TODO

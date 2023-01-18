@@ -111,6 +111,8 @@ export async function onIdentify(this: WebSocket, data: Payload) {
 		await user.settings.save();
 	}
 
+	const settings_proto = await UserSettings.toProto(user.settings);
+
 	if (!identify.intents) identify.intents = BigInt("0x6ffffffff");
 	this.intents = new Intents(identify.intents);
 	if (identify.shard) {
@@ -258,6 +260,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
 		}, //TODO: check this code!
 		user: privateUser,
 		user_settings: user.settings,
+		user_settings_proto: Buffer.from(settings_proto).toString("base64"),
 		// @ts-ignore
 		guilds: guilds.map((x) => {
 			return {
